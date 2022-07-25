@@ -14,6 +14,11 @@ console.log(voiceList);
 
 /* #4.1 - salvo "speechSynthesis" in una variabile */
 let synth = speechSynthesis;
+/* #6.2 - Creo una variabile settata su true inizialmente */
+isSpeaking = true
+
+/* #6.3 - Sistemo bug delle option in firefox */
+voices() // Basta invocare la funzione
 
 /* #4.2 - Avvio la creazione della funzione legata alle opzioni disponibili */
 function voices() {
@@ -28,7 +33,6 @@ function voices() {
 
 /* #4.3 - Ora scatendando l'evento "voiceschanged" posso prendere tutti i traduttori vocali disponibili */
 synth.addEventListener("voiceschanged", voices)
-
 
 
 /* #3 - Creo la funzione per il vocale */
@@ -52,8 +56,34 @@ speechButton.addEventListener("click", e => {
     e.preventDefault(); // #2.4 - Impedisco il refresh al click
     /* #2.5 - Aggiungo una condizione, se il valore di textArea è diverso da vuoto  */
     if (textArea.value !== "") {
-        /* Invoco la funzione */
-        textToSpeech(textArea.value)
+        /* #6 - nuova condizione, se "synth" attualmente non sta parlando */
+        if (!synth.speaking) {
+            /* Invoco la funzione */
+            textToSpeech(textArea.value)
+        }
+        /* #6.1 - Aggiungo nuova condizione, nel caso in cui la lunghezza del VALORE della textarea sia maggiore di 80 */
+        if (textArea.value.length > 80) {
+            if (isSpeaking) {
+                synth.resume();
+                isSpeaking = false; // Inizialmente settata su true ma in questa condizione viene settata su false
+                speechButton.innerText = "Metti in Pausa"
+            } else {
+                synth.pause();
+                isSpeaking = true; // E' true in questo caso
+                speechButton.innerText = "Riprendi ascolto"
+            }
+            /* #6.4 - Verifico se il traduttore vocale sta parlando oppure no ogni 100ms */
+            /* Se cosi non fosse il valore di isSpeaking diventa true e cambio il testo al button */
+            setInterval(() => {
+                if (!synth.speaking && !isSpeaking) {
+                    isSpeaking = true
+                    speechButton.innerText = "Convert to Speech"
+                }
+            })
+        } else {
+            speechButton.innerText = "Convert to Speech"
+        }
+
     }
 
 })
